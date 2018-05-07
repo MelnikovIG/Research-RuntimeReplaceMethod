@@ -14,12 +14,12 @@ namespace ConsoleApp2
         public static void Begin()
         {
             Console.WriteLine("//---------------------------");
-            Console.WriteLine($"Start injected {DateTime.Now}");
+            Console.WriteLine($"Start injected {DateTime.Now.Ticks}");
         }
 
         public static void End()
         {
-            Console.WriteLine($"End injected {DateTime.Now}");
+            Console.WriteLine($"End injected {DateTime.Now.Ticks}");
             Console.WriteLine("//---------------------------");
         }
 
@@ -34,7 +34,7 @@ namespace ConsoleApp2
 
             var endMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(methodEnd);
 
-            var originalMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(originalMethod).ToList(); ;
+            var originalMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(originalMethod).ToList();
             originalMethodInstructions.RemoveAt(originalMethodInstructions.Count - 1); //удалим возврат
 
             var returnType = originalMethod.ReturnType;
@@ -48,10 +48,9 @@ namespace ConsoleApp2
 
             ILGenerator il = dynamicMethod.GetILGenerator();
 
-            foreach (var instruction in beginMethodInstructions
-                    .Concat(originalMethodInstructions)
-                    .Concat(endMethodInstructions))
-            //foreach (var instruction in originalMethodInstructions)
+            il.Emit(OpCodes.Call, methodBegin);
+
+            foreach (var instruction in originalMethodInstructions)
             {
                 if (instruction.Operand == null)
                 {
@@ -86,6 +85,9 @@ namespace ConsoleApp2
                     throw new NotImplementedException();
                 }
             }
+
+            il.Emit(OpCodes.Call, methodEnd);
+            il.Emit(OpCodes.Ret);
 
             //dynamicMethod.Invoke(new MethodMerger(), null); // call for test
             return dynamicMethod;
