@@ -14,12 +14,12 @@ namespace ConsoleApp2
         public static void Begin()
         {
             Console.WriteLine("//---------------------------");
-            Console.WriteLine("Start injected");
+            Console.WriteLine($"Start injected {DateTime.Now}");
         }
 
         public static void End()
         {
-            Console.WriteLine("End injected");
+            Console.WriteLine($"End injected {DateTime.Now}");
             Console.WriteLine("//---------------------------");
         }
 
@@ -34,7 +34,8 @@ namespace ConsoleApp2
 
             var endMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(methodEnd);
 
-            var originalMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(originalMethod);
+            var originalMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(originalMethod).ToList(); ;
+            originalMethodInstructions.RemoveAt(originalMethodInstructions.Count - 1); //удалим возврат
 
             var returnType = originalMethod.ReturnType;
             var args = originalMethod.GetParameters().Select(x => x.ParameterType).ToArray();
@@ -47,7 +48,9 @@ namespace ConsoleApp2
 
             ILGenerator il = dynamicMethod.GetILGenerator();
 
-            foreach (var instruction in beginMethodInstructions.Concat(originalMethodInstructions))
+            foreach (var instruction in beginMethodInstructions
+                    .Concat(originalMethodInstructions)
+                    .Concat(endMethodInstructions))
             //foreach (var instruction in originalMethodInstructions)
             {
                 if (instruction.Operand == null)
@@ -75,10 +78,8 @@ namespace ConsoleApp2
                 }
                 else if (instruction.OpCode == OpCodes.Box)
                 {
-                    //Type type = instruction.Operand as Type;
-                    //il.Emit(OpCodes.Box, type);
-                    //il.Emit(OpCodes.Box, typeof(int));
-                    throw new NotImplementedException();
+                    Type type = instruction.Operand as Type;
+                    il.Emit(OpCodes.Box, type);
                 }
                 else
                 {
