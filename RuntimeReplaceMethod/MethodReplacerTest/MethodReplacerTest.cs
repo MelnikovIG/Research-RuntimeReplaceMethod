@@ -172,5 +172,84 @@ namespace MethodReplacerTest
             Assert.AreEqual(oldState, 0);
             Assert.AreEqual(newState, state);
         }
+
+        public class A
+        {
+            public async Task<int> Execute(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"A.Execute {i}");
+                return i*10;
+            }
+
+            public static async Task<int> ExecuteStatic(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"A.Execute {i}");
+                return i * 10;
+            }
+        }
+
+        public class B
+        {
+            public async Task<int> Execute(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"B.Execute {i}");
+                return i * 100;
+            }
+
+            public static async Task<int> ExecuteStatic(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"B.Execute {i}");
+                return i * 100;
+            }
+        }
+
+        [TestMethod]
+        public async Task ReplaceMethodFromAnotherClass()
+        {
+            //Assign
+
+            var state = 1;
+            var targetMethod = typeof(A).GetMethod(nameof(A.Execute));
+            var injectedMethod = typeof(B).GetMethod(nameof(B.Execute));
+
+            var a = new A();
+            var oldState = await a.Execute(state);
+
+            //Act
+
+            MethodReplacer.Replace(targetMethod, injectedMethod);
+            var newState = await a.Execute(state);
+
+            //Assert
+
+            Assert.AreEqual(oldState, 10);
+            Assert.AreEqual(newState, 100);
+        }
+
+        [TestMethod]
+        public async Task ReplaceStatiMethodFromAnotherClass()
+        {
+            //Assign
+
+            var state = 1;
+            var targetMethod = typeof(A).GetMethod(nameof(A.ExecuteStatic));
+            var injectedMethod = typeof(B).GetMethod(nameof(B.ExecuteStatic));
+
+            var oldState = await A.ExecuteStatic(state);
+
+            //Act
+
+            MethodReplacer.Replace(targetMethod, injectedMethod);
+            var newState = await A.ExecuteStatic(state);
+
+            //Assert
+
+            Assert.AreEqual(oldState, 10);
+            Assert.AreEqual(newState, 100);
+        }
     }
 }
