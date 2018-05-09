@@ -251,5 +251,85 @@ namespace MethodReplacerTest
             Assert.AreEqual(oldState, 10);
             Assert.AreEqual(newState, 100);
         }
+
+        public class A_UB
+        {
+            public async Task<int> Execute(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"A.Execute {i}");
+                return i * 10;
+            }
+
+            public static async Task<int> ExecuteStatic(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"A.Execute {i}");
+                return i * 10;
+            }
+        }
+
+        public class B_UB
+        {
+            public async Task<int> Execute(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"B.Execute {i}");
+                return i * 100;
+            }
+
+            public static async Task<int> ExecuteStatic(int i)
+            {
+                await Task.Delay(1);
+                Console.WriteLine($"B.Execute {i}");
+                return i * 100;
+            }
+        }
+
+        [TestMethod()]
+        public async Task ReplaceStaticWithNonStaticUnexpectedBehavior()
+        {
+            //Assign
+
+            var state = 1;
+            var targetMethod = typeof(A_UB).GetMethod(nameof(A_UB.Execute));
+            var injectedMethod = typeof(B_UB).GetMethod(nameof(B_UB.ExecuteStatic));
+
+            var oldState = await new A_UB().Execute(state);
+
+            //Act
+
+            MethodReplacer.Replace(targetMethod, injectedMethod);
+            var newState = await new A_UB().Execute(state);
+
+            //Assert
+
+            Assert.AreEqual(oldState, 10);
+            Assert.AreNotEqual(newState, 10);
+            Assert.AreNotEqual(newState, 100);
+        }
+
+        [TestMethod()]
+        public async Task ReplaceNonStaticWithStaticUnexpectedBehavior()
+        {
+            //Assign
+
+            var state = 1;
+            var targetMethod = typeof(A_UB).GetMethod(nameof(A_UB.ExecuteStatic));
+            var injectedMethod = typeof(B_UB).GetMethod(nameof(B_UB.Execute));
+
+            var oldState = await A_UB.ExecuteStatic(state);
+
+            //Act
+
+            MethodReplacer.Replace(targetMethod, injectedMethod);
+            var newState = await A_UB.ExecuteStatic(state);
+
+            //Assert
+
+            Assert.AreEqual(oldState, 10);
+            Assert.AreNotEqual(newState, 10);
+            Assert.AreNotEqual(newState, 100);
+        }
     }
 }
