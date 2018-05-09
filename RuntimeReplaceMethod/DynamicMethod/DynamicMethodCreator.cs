@@ -28,8 +28,19 @@ namespace DynamicMethodCreator
             return dynamicMethod;
         }
 
+        public static void Begin()
+        {
+            Console.WriteLine("//---------------------------");
+            Console.WriteLine($"Start injected {DateTime.Now.Ticks}");
+        }
+
         private static void BuildMethod(TypeBuilder typeBuilder, string methodName, MethodInfo originalMethod)
         {
+            var methodBegin = typeof(DynamicMethodCreator).GetMethod(nameof(Begin), BindingFlags.Public/* | BindingFlags.NonPublic*/ | BindingFlags.Instance | BindingFlags.Static);
+
+            var beginMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(methodBegin).ToList();
+            beginMethodInstructions.RemoveAt(beginMethodInstructions.Count - 1); //delete return
+
             var originalMethodInstructions = Mono.Reflection.Disassembler.GetInstructions(originalMethod).ToList();
             var returnType = originalMethod.ReturnType;
             var args = originalMethod.GetParameters().Select(x => x.ParameterType).ToArray();
@@ -42,6 +53,8 @@ namespace DynamicMethodCreator
                                                 args);
 
             ILGenerator il = myMthdBld.GetILGenerator();
+
+            il.Emit(OpCodes.Call, methodBegin);
 
             foreach (var instruction in originalMethodInstructions)
             {
