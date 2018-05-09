@@ -186,7 +186,7 @@ namespace MethodReplacerTest
             {
                 await Task.Delay(1);
                 Console.WriteLine($"A.Execute {i}");
-                return i * 10;
+                return i * 100;
             }
         }
 
@@ -196,14 +196,14 @@ namespace MethodReplacerTest
             {
                 await Task.Delay(1);
                 Console.WriteLine($"B.Execute {i}");
-                return i * 100;
+                return i * 20;
             }
 
             public static async Task<int> ExecuteStatic(int i)
             {
                 await Task.Delay(1);
                 Console.WriteLine($"B.Execute {i}");
-                return i * 100;
+                return i * 200;
             }
         }
 
@@ -227,11 +227,11 @@ namespace MethodReplacerTest
             //Assert
 
             Assert.AreEqual(oldState, 10);
-            Assert.AreEqual(newState, 100);
+            Assert.AreEqual(newState, 20);
         }
 
         [TestMethod]
-        public async Task ReplaceStatiMethodFromAnotherClass()
+        public async Task ReplaceStaticMethodFromAnotherClass()
         {
             //Assign
 
@@ -248,8 +248,8 @@ namespace MethodReplacerTest
 
             //Assert
 
-            Assert.AreEqual(oldState, 10);
-            Assert.AreEqual(newState, 100);
+            Assert.AreEqual(oldState, 100);
+            Assert.AreEqual(newState, 200);
         }
 
         public class A_UB
@@ -265,7 +265,7 @@ namespace MethodReplacerTest
             {
                 await Task.Delay(1);
                 Console.WriteLine($"A.Execute {i}");
-                return i * 10;
+                return i * 100;
             }
         }
 
@@ -275,14 +275,14 @@ namespace MethodReplacerTest
             {
                 await Task.Delay(1);
                 Console.WriteLine($"B.Execute {i}");
-                return i * 100;
+                return i * 20;
             }
 
             public static async Task<int> ExecuteStatic(int i)
             {
                 await Task.Delay(1);
                 Console.WriteLine($"B.Execute {i}");
-                return i * 100;
+                return i * 200;
             }
         }
 
@@ -305,8 +305,8 @@ namespace MethodReplacerTest
             //Assert
 
             Assert.AreEqual(oldState, 10);
-            Assert.AreNotEqual(newState, 10);
-            Assert.AreNotEqual(newState, 100);
+            Assert.AreNotEqual(newState, oldState);
+            Assert.AreNotEqual(newState, 200);
         }
 
         [TestMethod()]
@@ -327,9 +327,9 @@ namespace MethodReplacerTest
 
             //Assert
 
-            Assert.AreEqual(oldState, 10);
-            Assert.AreNotEqual(newState, 10);
-            Assert.AreNotEqual(newState, 100);
+            Assert.AreEqual(oldState, 100);
+            Assert.AreNotEqual(newState, oldState);
+            Assert.AreNotEqual(newState, 20);
         }
     }
 }
