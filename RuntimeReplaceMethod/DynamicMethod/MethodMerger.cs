@@ -90,6 +90,7 @@ namespace ConsoleApp2
             il.Emit(OpCodes.Ret);
 
             //dynamicMethod.Invoke(new MethodMerger(), null); // call for test
+
             return dynamicMethod;
         }
     }
