@@ -54,7 +54,9 @@ namespace ConsoleApp2
                     Console.WriteLine("\nVersion x64 Debug\n");
                     //byte* injInst = (byte*)*inj;
                     //byte* tarInst = (byte*)*tar;
-                    byte* injInst = (byte*)GetDynamicHandle(methodToInject as DynamicMethod).GetFunctionPointer();
+                    byte* injInst = isInjectedMethodDynamic
+                        ? (byte*)GetDynamicHandle(methodToInject as DynamicMethod).GetFunctionPointer()
+                        : (byte*)methodToInject.MethodHandle.GetFunctionPointer();
                     byte* tarInst = (byte*)methodToReplace.MethodHandle.GetFunctionPointer();
 
                     long* injSrc = (long*)(injInst + 1);
